@@ -153,7 +153,25 @@ class Text:
         screen.fill(BACKGROUND_COLOR)
         screen.blit(text, (Global.screen_width/2 - 100, Global.screen_height/2)) 
         
-    
+class Game:
+    game_over = False
+    game_over_banner_delay = 5  # display game over text for 10 seconds
+    game_over_time = None
+
+    def kickoff_game_over_timer():
+        if Game.game_over_time is None:
+            Game.game_over_time = datetime.datetime.now()
+            print("Game Over!")
+
+    def time_to_exit_screen():
+        if Game.game_over_time is None:
+            return False
+        new_time = datetime.datetime.now()
+        #print(Game.game_over_time, new_time)
+        if get_diff_in_seconds(Game.game_over_time, new_time) > Game.game_over_banner_delay:
+            return True
+
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((Global.screen_width, Global.screen_height))
@@ -163,8 +181,7 @@ def main():
     shell_list = ShellList()
     bomb_list = BombList()
             
-    game_over = False
-    while not game_over:  # game loop        
+    while not Game.game_over:  # game loop        
         screen.fill((0, 0, 0))
         
 
@@ -185,7 +202,7 @@ def main():
         # event processing
         for event in pygame.event.get():  # event handler
             if event.type == pygame.QUIT:
-                game_over = True
+                Game.game_over = True
             if event.type == pygame.KEYUP:
                 key = event.key
                 # fire cannon
@@ -197,6 +214,10 @@ def main():
         # is game over 
         if bomb_list.test_if_game_over():
             Text("Game Over!").draw(screen)
+            Game.kickoff_game_over_timer()
+            
+        if Game.time_to_exit_screen():
+                Game.game_over = True
 
         # refresh screen
         pygame.display.update()        
