@@ -22,12 +22,11 @@ class Bomb:
         self.x = x
         self.y = y
         self.created_at = datetime.datetime.now()
-        self.annihilated = False
+        self.activated = True
     
     def adjust_position(self):
         new_time = datetime.datetime.now()
         self.y += Bomb.speed * get_diff_in_seconds(self.created_at, new_time)
-        #print(f"Bomb position: {str(new_time)} x={self.x} y={self.y} an={self.annihilated}")
               
     def in_screen(self):
         if self.y - Bomb.radius > Global.screen_height:  # upper point is lower than the screen bottom
@@ -37,7 +36,7 @@ class Bomb:
         return True
     
     def draw(self, screen):
-        if self.in_screen() and not self.annihilated:
+        if self.in_screen() and self.activated:
             pygame.draw.circle(screen, Bomb.color, (self.x, self.y), self.radius)
             self.adjust_position()
 
@@ -59,7 +58,6 @@ class BombList:
     def generate_bomb(self):
         new_time = datetime.datetime.now()
         expected_number = get_diff_in_seconds(self.created_at, new_time) * BombList.bomb_creation_speed
-        #print(f"Expected {expected_number} Actual {len(self.bombs)}")
         for i in range(int(expected_number) - len(self.bombs)):
             x = random.randint(Bomb.radius, Global.screen_width - Bomb.radius)
             y = 1 + 0 - Bomb.radius
@@ -69,8 +67,7 @@ class BombList:
 
     def test_if_game_over(self):
         for bomb in self.bombs:
-            if not bomb.annihilated and bomb.y+Bomb.radius >= Global.screen_height:
-                #print("Game over!")
+            if bomb.activated and bomb.y+Bomb.radius >= Global.screen_height:
                 return True
 
 
@@ -85,13 +82,12 @@ class Shell:
         self.y = y 
         self.y2 = self.y + Shell.length       
         self.created_at = datetime.datetime.now()
-        self.annihilated = False
+        self.activated = True
     
     def adjust_position(self):
         new_time = datetime.datetime.now()
         self.y -= Shell.speed * get_diff_in_seconds(self.created_at, new_time)
         self.y2 = self.y + Shell.length
-        #print(f"Shell position: {str(new_time)} x={self.x} y={self.y} y2={self.y2} an={self.annihilated}")
      
     def in_screen(self):
         if self.y > Global.screen_height:  # upper point is lower than the screen bottom
@@ -101,7 +97,7 @@ class Shell:
         return True
     
     def draw(self, screen):
-        if self.in_screen() and not self.annihilated:
+        if self.in_screen() and self.activated:
             pygame.draw.line(screen, 
                             Shell.color, 
                             (self.x, self.y), 
@@ -127,10 +123,10 @@ class ShellList:
             for bomb_id in range(len(bombList.bombs)):
                 shell = self.shells[shell_id]
                 bomb = bombList.bombs[bomb_id]
-                if shell.in_screen() and not shell.annihilated and bomb.in_screen() and not bomb.annihilated:
+                if shell.in_screen() and shell.activated and bomb.in_screen() and bomb.activated:
                     if shell.x >= (bomb.x - Bomb.radius) and shell.x <= (bomb.x + Bomb.radius) and shell.y >= (bomb.y - Bomb.radius) and shell.y <= (bomb.y + Bomb.radius):
-                        shell.annihilated = True
-                        bomb.annihilated = True
+                        shell.activated = False
+                        bomb.activated = False
                         print("Target hit!")
 
 
